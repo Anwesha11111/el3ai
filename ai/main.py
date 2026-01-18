@@ -37,7 +37,7 @@ async def chat(request: ChatRequest):
             raise HTTPException(status_code=500, detail="Missing GOOGLE_AI_API_KEY")
         
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-2.0-flash-exp")
         
         response = model.generate_content(request.message)
         
@@ -57,3 +57,4 @@ async def chat(request: ChatRequest):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
+
