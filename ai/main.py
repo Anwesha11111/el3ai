@@ -23,7 +23,7 @@ async def chat(request: ChatRequest):
         genai.configure(api_key=api_key)
         
         # Use the 2026 stable identifier for Flash
-        model = genai.GenerativeModel("gemini-1.5-flash-latest") 
+        model = genai.GenerativeModel("gemini-2.0-flash") 
         
         response = model.generate_content(request.message)
         return {"response": response.text, "sources": ["https://rbi.org.in"]}
@@ -31,3 +31,4 @@ async def chat(request: ChatRequest):
         # This will show the EXACT error in your Render logs
         print(f"CRITICAL ERROR: {str(e)}") 
         raise HTTPException(status_code=500, detail=str(e))
+
