@@ -33,14 +33,24 @@ async def chat(request: ChatRequest):
         if not api_key:
             raise HTTPException(status_code=500, detail="Missing API key")
         
-        print(f"Processing: {request.message[:50]}...")
-        
-        # NEW 2026 Google AI SDK
         client = genai.Client(api_key=api_key)
-        
+
+        final_prompt = f"""
+You are FinLit Bot, a financial literacy assistant for beginners in India.
+
+Rules:
+- Answer briefly (4–5 lines max)
+- No markdown, tables, headings, or bullet points
+- Use simple language
+- End with one follow-up question
+
+User question:
+{request.message}
+"""
+
         response = client.models.generate_content(
-            model="gemini-3-flash-preview",  # 2026 FREE tier
-            contents=request.message
+            model="gemini-3-flash-preview",
+            contents=final_prompt
         )
         
         print(f"Success! Response: {response.text[:100]}...")
@@ -61,3 +71,4 @@ async def chat(request: ChatRequest):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
+
