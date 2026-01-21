@@ -13,6 +13,7 @@ app.add_middleware(
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
+
 SYSTEM_PROMPT = """
 You are FinLit Bot, a financial literacy assistant for beginners in India.
 
@@ -31,16 +32,14 @@ When helpful:
 End every reply with ONE short follow-up question.
 """
 
-
 class ChatRequest(BaseModel):
     message: str
 
 @app.get("/health")
 async def health():
-    api_key = os.getenv("GOOGLE_AI_API_KEY")
     return {
         "status": "healthy",
-        "api_key_set": api_key is not None,
+        "api_key_set": bool(os.getenv("GOOGLE_AI_API_KEY")),
         "model": "gemini-3-flash-preview"
     }
 
@@ -50,11 +49,10 @@ async def chat(request: ChatRequest):
         api_key = os.getenv("GOOGLE_AI_API_KEY")
         if not api_key:
             raise HTTPException(status_code=500, detail="Missing API key")
-        
+
         client = genai.Client(api_key=api_key)
 
-        final_prompt = f"""
-{SYSTEM_PROMPT}
+        final_prompt = f"""{SYSTEM_PROMPT}
 
 User question:
 {request.message}
@@ -62,25 +60,30 @@ User question:
 
         response = client.models.generate_content(
             model="gemini-3-flash-preview",
-            contents=final_prompt
+            contents=[
+                {
+                    "role": "user",
+                    "parts": [{"text": final_prompt}]
+                }
+            ]
         )
 
+        # SAFELY extract text
+        ai_text = response.candidates[0].content.parts[0].text
+
         return {
-            "response": response.text,
+            "response": ai_text,
             "sources": [
                 "https://rbi.org.in",
                 "https://sebi.gov.in",
                 "https://incometaxindia.gov.in"
             ]
         }
-        
+
     except Exception as e:
-        print(f"ERROR: {str(e)}")
+        print("AI ERROR:", str(e))
         raise HTTPException(status_code=500, detail=f"AI Error: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
-
-
-
