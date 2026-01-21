@@ -13,6 +13,24 @@ app.add_middleware(
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
+SYSTEM_PROMPT = """
+You are FinLit Bot, a financial literacy assistant for beginners in India.
+
+Rules:
+- Keep answers short (4–5 lines max)
+- Use simple conversational language
+- Do NOT use markdown, tables, or headings
+- Focus on India (RBI, SEBI, Income Tax, UIDAI)
+- Do NOT give legal or investment advice, only education
+
+When helpful:
+- Suggest up to 2 official websites (RBI, SEBI, Income Tax, UIDAI, NSDL, Zerodha Varsity)
+- Suggest 1 YouTube search link (not a specific video)
+- Clearly label them as "Helpful links"
+
+End every reply with ONE short follow-up question.
+"""
+
 
 class ChatRequest(BaseModel):
     message: str
@@ -36,13 +54,7 @@ async def chat(request: ChatRequest):
         client = genai.Client(api_key=api_key)
 
         final_prompt = f"""
-You are FinLit Bot, a financial literacy assistant for beginners in India.
-
-Rules:
-- Answer briefly (4–5 lines max)
-- No markdown, tables, headings, or bullet points
-- Use simple language
-- End with one follow-up question
+{SYSTEM_PROMPT}
 
 User question:
 {request.message}
@@ -52,9 +64,7 @@ User question:
             model="gemini-3-flash-preview",
             contents=final_prompt
         )
-        
-        print(f"Success! Response: {response.text[:100]}...")
-        
+
         return {
             "response": response.text,
             "sources": [
@@ -71,4 +81,5 @@ User question:
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
+
 
