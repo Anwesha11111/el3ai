@@ -43,6 +43,25 @@ async def health():
         "model": "gemini-3-flash-preview"
     }
 
+def make_links_clickable(text: str) -> str:
+    lines = text.split("\n")
+    formatted_lines = []
+
+    for line in lines:
+        if "http" in line:
+            parts = line.split(" ")
+            new_parts = []
+            for part in parts:
+                if part.startswith("http"):
+                    new_parts.append(f'<a href="{part}" target="_blank">{part}</a>')
+                else:
+                    new_parts.append(part)
+            formatted_lines.append(" ".join(new_parts))
+        else:
+            formatted_lines.append(line)
+
+    return "<br>".join(formatted_lines)
+
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
     try:
@@ -68,11 +87,23 @@ User question:
             ]
         )
 
-        # SAFELY extract text
-        ai_text = response.candidates[0].content.parts[0].text
+        raw_text = response.candidates[0].content.parts[0].text
+
+        # Ensure spacing + clickable links
+        formatted_text = raw_text.replace(
+            "Helpful links",
+            "<br><br><strong>Helpful links</strong><br>"
+        )
+
+        formatted_text = formatted_text.replace(
+            "Do you",
+            "<br><br>Do you"
+        )
+
+        formatted_text = make_links_clickable(formatted_text)
 
         return {
-            "response": ai_text,
+            "response": formatted_text,
             "sources": [
                 "https://rbi.org.in",
                 "https://sebi.gov.in",
