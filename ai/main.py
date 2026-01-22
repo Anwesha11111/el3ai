@@ -18,7 +18,7 @@ SYSTEM_PROMPT = """
 You are FinLit Bot, a financial literacy assistant for beginners in India.
 
 Rules:
-- Keep answers short (4–5 lines max) and give gap between lines
+- Keep answers short (10-15 lines max) and give gap between  new lines
 - Use simple conversational language
 - Do NOT use markdown, tables, or headings
 - Focus on India (RBI, SEBI, Income Tax, UIDAI)
@@ -118,3 +118,4 @@ User question:
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
+
